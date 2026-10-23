@@ -1,0 +1,22 @@
+{
+  "name": "mcpad",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Drive-thru menu launchpad on Solana, deploying through pump.fun",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "build:demo": "node scripts/build-demo.js",
+    "draw-art": "node scripts/draw-art.js",
+    "build": "node scripts/prepare-public.js",
+    "postinstall": "node scripts/prepare-public.js"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.99.0",
+    "@upstash/redis": "^1.39.0",
+    "express": "^4.22.3"
+  }
+}

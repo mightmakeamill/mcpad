@@ -1,7 +1,7 @@
 /* McPad client. Runs "live" when served by the API (real pump.fun launches through
    the customer's wallet); the single-file build (art inlined) runs a demo. */
 (() => {
-  const { ITEMS, COUNT, byId, SECTIONS, ticker, BALLS, badgesFor } = window.MENU;
+  const { ITEMS, COUNT, byId, SECTIONS, ticker, BALLS } = window.MENU;
   const SIZES = BALLS;
   const $ = (s, el = document) => el.querySelector(s);
   const no = (n) => String(n).padStart(2, '0');
@@ -61,7 +61,7 @@
     if (state.pending[id] && state.pending[id].trainer !== state.wallet) return 'pending';
     return 'open';
   }
-  const customer = (addr) => (addr === state.wallet ? store.get('name', 'HUNGRY') : state.names[addr]) || short(addr);
+  const customer = (addr) => state.names[addr] || short(addr);
   const pumpUrl = (mint) => `https://pump.fun/coin/${mint}`;
   const txUrl = (sig) => `https://solscan.io/tx/${sig}`;
   const sizeOf = (key) => SIZES.find((s) => s.key === key) || SIZES[0];
@@ -177,21 +177,6 @@
     $('#serving').innerHTML = rec.length
       ? rec.map((r) => `<li><button type="button" data-order="${r.id}">#${no(r.id)}<span>${esc(byId(r.id).name)}</span></button></li>`).join('')
       : `<li class="none">Nothing served yet.</li>`;
-
-    const punch = $('#punch');
-    if (!state.wallet) {
-      punch.innerHTML = `<h2 id="cardTitle">Punch card</h2><p class="card-sub">Earn a stamp for every part of the menu you launch from.</p>
-        <button class="btn btn-red" type="button" id="cardConnect">Connect wallet</button>`;
-    } else {
-      const stamps = badgesFor(state.wallet, state.caught);
-      const mine = myOrders();
-      punch.innerHTML = `<h2 id="cardTitle">Punch card</h2>
-        <p class="card-sub">${stamps.filter((b) => b.earned).length} of ${stamps.length} stamps · ${mine.length} launched</p>
-        <label class="card-name" for="cname">Name<input id="cname" maxlength="12" value="${esc(store.get('name', 'HUNGRY'))}"></label>
-        <ul class="punches">${stamps.map((b) => `<li class="punch${b.earned ? ' got' : ''}" title="Launch ${b.count} from ${esc(sectionOf(b.section).name)}">
-          <span class="hole">${b.earned ? '✓' : `${Math.min(b.have, b.count)}/${b.count}`}</span>${esc(b.name)}</li>`).join('')}</ul>
-        ${mine.length ? `<ol class="my-orders">${mine.slice(0, 6).map((o) => `<li><span>#${no(o.id)} $${ticker(byId(o.id))}</span>${state.mode === 'live' ? `<a href="${pumpUrl(o.mint)}" target="_blank" rel="noopener">pump.fun</a>` : `<span>${sizeOf(o.ball).name}</span>`}</li>`).join('')}</ol>` : ''}`;
-    }
 
     const tally = {};
     for (const c of Object.values(state.caught)) tally[c.trainer] = (tally[c.trainer] || 0) + 1;
@@ -397,20 +382,18 @@
       $('#stepMsg').textContent = msg;
       sfx.beep();
     };
-    const stampsBefore = badgesFor(state.wallet, state.caught).filter((b) => b.earned).map((b) => b.name);
     try {
       const res = await (state.mode === 'live' ? catchLive : catchDemo)(id, s.key, step);
       state.caught[id] = { mint: res.mint, trainer: state.wallet, ball: s.key, signature: res.signature, ts: Date.now() };
       if (state.mode === 'demo') store.set('demoOrders', { ...store.get('demoOrders', {}), [id]: state.caught[id] });
       screen.querySelectorAll('[data-step]').forEach((li) => (li.className = 'done'));
       $('#stepMsg').textContent = '';
-      const stamps = badgesFor(state.wallet, state.caught).filter((b) => b.earned && !stampsBefore.includes(b.name));
       orderDone = true;
       light('on');
       screen.insertAdjacentHTML('beforeend', `<div class="scr-actions">
         ${state.mode === 'live' ? `<a class="btn btn-primary" href="${pumpUrl(res.mint)}" target="_blank" rel="noopener">Open on pump.fun</a><a class="btn btn-ghost" href="${txUrl(res.signature)}" target="_blank" rel="noopener">Solscan</a>` : ''}
         <button class="btn ${state.mode === 'live' ? 'btn-ghost' : 'btn-primary'}" type="button" data-close>Order something else</button></div>`);
-      printReceipt(p, s, res, stamps);
+      printReceipt(p, s, res);
       render();
     } catch (e) {
       light('err');
@@ -425,7 +408,7 @@
     }
   }
 
-  function printReceipt(p, s, res, stamps) {
+  function printReceipt(p, s, res) {
     const r = $('#receipt');
     const d = new Date();
     r.innerHTML = `<h4>McPAD DRIVE-THRU</h4>
@@ -438,14 +421,12 @@
       <hr>
       <div class="row"><span>MINT</span><span>${short(res.mint)}</span></div>
       <div class="row"><span>TX</span><span>${short(res.signature)}</span></div>
-      ${stamps.length ? `<hr>${stamps.map((b) => `<p class="c">★ STAMP EARNED: ${esc(b.name.toUpperCase())} ★</p>`).join('')}` : ''}
       <hr><p class="c">${state.mode === 'live' ? 'THANK YOU. PLEASE PULL FORWARD.' : 'DEMO RECEIPT · NOTHING WAS SENT'}</p>
       ${state.mode === 'live' ? `<div class="links"><a href="${pumpUrl(res.mint)}" target="_blank" rel="noopener">pump.fun</a><a href="${txUrl(res.signature)}" target="_blank" rel="noopener">solscan</a></div>` : ''}`;
     r.hidden = false;
     r.classList.remove('print'); void r.offsetWidth; r.classList.add('print');
     sfx.print();
     setTimeout(sfx.ready, reduced ? 0 : 1500);
-    for (const b of stamps) toast(`Stamp earned: ${b.name}`);
   }
 
   async function startOrder(id) {
@@ -523,8 +504,8 @@
       startOrder(open[Math.floor(Math.random() * open.length)].id);
       return;
     }
-    if (e.target.closest('#walletBtn') || e.target.closest('#cardConnect')) {
-      if (state.wallet) $('#punch').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }); else connect();
+    if (e.target.closest('#walletBtn')) {
+      if (state.wallet) toast(`Connected: ${state.wallet}`); else connect();
       return;
     }
     if (e.target.closest('#welLook')) { closeWelcome(); return; }
@@ -533,11 +514,9 @@
   });
   document.addEventListener('input', (e) => {
     if (e.target.id === 'search') { state.q = e.target.value; renderBoard(); }
-    if (e.target.id === 'cname') { store.set('name', e.target.value.toUpperCase().slice(0, 12) || 'HUNGRY'); renderTop(); }
   });
   document.addEventListener('change', (e) => {
     if (e.target.id === 'show') { state.show = e.target.value; renderBoard(); }
-    if (e.target.id === 'cname') { renderTicker(); renderSide(); }
   });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;

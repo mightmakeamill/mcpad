@@ -125,30 +125,7 @@
     return null;
   }
 
-  // Punch-card stamps, earned by the sections a customer has launched from.
-  const BADGES = [
-    { name: 'Grill Master', section: 'burgers', count: 4 },
-    { name: 'Clucker', section: 'chicken', count: 3 },
-    { name: 'Early Bird', section: 'breakfast', count: 2 },
-    { name: 'Fry Cook', section: 'sides', count: 3 },
-    { name: 'Sweet Tooth', section: 'sweets', count: 2 },
-    { name: 'Barista', section: 'cafe', count: 2 },
-    { name: 'Vault Raider', section: 'vault', count: 2 },
-    { name: 'In The Know', section: 'secret', count: 1 },
-    { name: 'Rib Royalty', section: 'featured', count: 1 },
-  ];
-
-  function badgesFor(trainer, caught) {
-    const tally = {};
-    for (const [id, c] of Object.entries(caught)) {
-      if (c.trainer !== trainer) continue;
-      const s = byId(+id).section;
-      tally[s] = (tally[s] || 0) + 1;
-    }
-    return BADGES.map((b) => ({ ...b, have: tally[b.section] || 0, earned: (tally[b.section] || 0) >= b.count }));
-  }
-
-  const api = { ITEMS, COUNT, byId, SECTIONS, ticker, BALLS, lockReason, BADGES, badgesFor };
+  const api = { ITEMS, COUNT, byId, SECTIONS, ticker, BALLS, lockReason };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.MENU = api;
 })(typeof self !== 'undefined' ? self : this);

@@ -9,9 +9,8 @@ The McRib is back. McPad is a Solana launchpad shaped like a backlit drive-thru 
 | **The menu board** | Nine panels: It's Back, Burgers, Chicken & Fish, Breakfast, Sides & Sauces, Sweets & Treats, Café & Drinks, The Vault, and the Secret Menu. Every item can be ordered right away. Each one shows its number, `$TICKER`, and whether it's open, being prepared, or launched. |
 | **Sizes** | Your dev first buy on the bonding curve: Small 0.1 · Medium 0.5 · Large 1.5 · Super Size 5 SOL. Each wallet gets one Super Size. |
 | **The speaker post** | Ordering opens the drive-thru speaker and order screen. You pick a size and place the order. The screen then walks through Ringing it up, Pay at the window (wallet approval) and Cooking (the transaction confirming). |
-| **The receipt** | Prints once the coin is live, with the order number, mint, transaction, and any stamps earned. |
+| **The receipt** | Prints once the coin is live, with the order number, mint, and transaction. |
 | **Order status screen** | Preparing (live 2-minute holds) and Now Serving (recent launches). |
-| **Punch card** | Nine stamps earned by launching from each part of the menu, plus your orders with pump.fun links. |
 | **Regulars** | The leaderboard. |
 | **LED ticker** | Recent orders and how much of the menu is left. |
 

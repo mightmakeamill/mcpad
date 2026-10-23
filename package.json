@@ -8,6 +8,7 @@
     "start": "node --env-file-if-exists=.env server.js",
     "build:demo": "node scripts/build-demo.js",
     "draw-art": "node scripts/draw-art.js",
+    "brand": "node scripts/brand.js",
     "build": "node scripts/prepare-public.js",
     "postinstall": "node scripts/prepare-public.js"
   },

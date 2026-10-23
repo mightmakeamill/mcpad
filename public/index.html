@@ -10,6 +10,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=Courier+Prime:wght@400;700&display=swap">
 <link rel="stylesheet" href="styles.css">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#120e0b">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="McPad">
+<meta property="og:title" content="McPad: the McRib is back">
+<meta property="og:description" content="Order a coin off the menu. 74 items, each launches on pump.fun exactly once.">
+<meta property="og:image" content="/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/og.png">
 </head>
 <body>
 <!--APP-->
@@ -18,8 +29,26 @@
 <header class="topbar">
   <div class="wrap topbar-in">
     <a class="sign" href="#top" aria-label="McPad home">
-      <span class="sign-word">McPAD</span>
-      <span class="sign-sub">Drive-thru launchpad · pump.fun</span>
+      <svg class="sign-mark" viewBox="0 0 512 512" width="44" height="44" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#e2382b"/><g transform="translate(256 260) scale(.82) translate(-256 -290)">
+  <g transform="rotate(-8 256 270)">
+    <path d="M104 236 C104 104 408 104 408 236 Z" fill="#f6b92f"/>
+    <ellipse cx="196" cy="168" rx="13" ry="7" transform="rotate(-24 196 168)" fill="#120e0b"/>
+    <ellipse cx="256" cy="150" rx="13" ry="7" fill="#120e0b"/>
+    <ellipse cx="316" cy="168" rx="13" ry="7" transform="rotate(24 316 168)" fill="#120e0b"/>
+    <ellipse cx="226" cy="204" rx="13" ry="7" transform="rotate(-10 226 204)" fill="#120e0b"/>
+    <ellipse cx="290" cy="204" rx="13" ry="7" transform="rotate(10 290 204)" fill="#120e0b"/>
+    <path d="M92 244 H420 V258 Q402 278 384 258 Q366 278 348 258 Q330 278 312 258 Q294 278 276 258 Q258 278 240 258 Q222 278 204 258 Q186 278 168 258 Q150 278 132 258 Q114 278 92 258 Z" fill="#93c552"/>
+    <rect x="86" y="274" width="340" height="54" rx="27" fill="#120e0b"/>
+    <path d="M104 344 H408 V358 Q408 392 374 392 H138 Q104 392 104 358 Z" fill="#f6b92f"/>
+  </g>
+  <g fill="#f6b92f">
+    <rect x="150" y="420" width="96" height="22" rx="11"/>
+    <rect x="270" y="420" width="56" height="22" rx="11"/>
+    <rect x="198" y="458" width="64" height="22" rx="11"/>
+    <rect x="286" y="458" width="28" height="22" rx="11"/>
+  </g></g></svg>
+      <span class="sign-text"><span class="sign-word">McPAD</span>
+      <span class="sign-sub">Drive-thru launchpad · pump.fun</span></span>
     </a>
     <div class="served" aria-live="polite">
       <span class="served-num"><b id="servedNum">0</b>/<span id="totalNum">74</span></span>
@@ -68,7 +97,6 @@
           <div><h3>Now serving</h3><ol id="serving"></ol></div>
         </div>
       </section>
-      <section class="card" aria-labelledby="cardTitle" id="punch"></section>
       <section class="regulars" aria-labelledby="regTitle">
         <h2 id="regTitle" class="side-title">Regulars</h2>
         <ol id="regulars"></ol>

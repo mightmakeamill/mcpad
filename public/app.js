@@ -1,7 +1,7 @@
 /* McPad client. Runs "live" when served by the API (real pump.fun launches through
    the customer's wallet); the single-file build (art inlined) runs a demo. */
 (() => {
-  const { ITEMS, COUNT, byId, SECTIONS, ticker, BALLS, breakfastHours, lockReason, badgesFor } = window.MENU;
+  const { ITEMS, COUNT, byId, SECTIONS, ticker, BALLS, badgesFor } = window.MENU;
   const SIZES = BALLS;
   const $ = (s, el = document) => el.querySelector(s);
   const no = (n) => String(n).padStart(2, '0');
@@ -59,7 +59,7 @@
   function status(id) {
     if (state.caught[id]) return 'sold';
     if (state.pending[id] && state.pending[id].trainer !== state.wallet) return 'pending';
-    return lockReason(id, state.caught) ? 'locked' : 'open';
+    return 'open';
   }
   const customer = (addr) => (addr === state.wallet ? store.get('name', 'HUNGRY') : state.names[addr]) || short(addr);
   const pumpUrl = (mint) => `https://pump.fun/coin/${mint}`;
@@ -95,9 +95,7 @@
 
   function renderTicker() {
     const n = soldCount();
-    const machine = n >= 12 ? 'ICE CREAM MACHINE: <b>WORKING</b>' : 'ICE CREAM MACHINE: <b>BROKEN</b>';
-    const bfast = n >= 25 ? 'BREAKFAST: <b>ALL DAY</b>' : breakfastHours() ? 'BREAKFAST: <b>SERVING TILL 10:30 ET</b>' : 'BREAKFAST: <b>5:00 TO 10:30 AM ET</b>';
-    const lines = ['THE McRIB IS <b>BACK</b>', machine, bfast, `<b>${n}/${COUNT}</b> ITEMS LAUNCHED`];
+    const lines = ['THE McRIB IS <b>BACK</b>', `<b>${n}/${COUNT}</b> ITEMS LAUNCHED`, `<b>${COUNT - n}</b> STILL ON THE MENU`];
     for (const r of recent().slice(0, 8))
       lines.push(`ORDER <b>#${no(r.id)}</b> ${esc(byId(r.id).name.toUpperCase())} · $${ticker(byId(r.id))} · ${esc(customer(r.trainer))}`);
     $('#ticker').innerHTML = [...lines, ...lines].map((l) => `<span>${l}</span>`).join('');
@@ -147,7 +145,6 @@
       price = `${sizeOf(c.ball).sol}<small>SOL</small>`; label = 'Launched';
     }
     if (st === 'pending') { sub = `<span class="item-who">Someone is at the window</span>`; price = '…'; label = 'Preparing'; }
-    if (st === 'locked') { sub = `<span class="item-why">${esc(lockReason(p.id, state.caught))}</span>`; price = '—'; label = 'Not yet'; }
     return `<li><button class="item st-${st}" type="button" data-order="${p.id}" id="item-${p.id}">
       <span class="thumb"><img src="${sprite(p.id)}" alt="" loading="lazy"></span>
       <span class="item-main">
@@ -340,15 +337,6 @@
         <div class="scr-actions"><button class="btn btn-ghost" type="button" data-close>Back to the menu</button></div>`;
       return;
     }
-    if (st === 'locked') {
-      light('err');
-      const base = p.from && !state.caught[p.from] ? byId(p.from) : null;
-      screen.innerHTML = itemHead(p, 'not available yet') +
-        `<div class="scr-error"><b>Sorry, not right now</b>${esc(lockReason(id, state.caught))}</div>
-        <div class="scr-actions">${base && status(base.id) === 'open' ? `<button class="btn btn-primary" type="button" data-order="${base.id}">Order the ${esc(base.name)} instead</button>` : ''}
-        <button class="btn btn-ghost" type="button" data-close>Back to the menu</button></div>`;
-      return;
-    }
     light('on');
     if (state.size === 'super' && superUsed()) state.size = 'large';
     const s = sizeOf(state.size);
@@ -409,7 +397,6 @@
       $('#stepMsg').textContent = msg;
       sfx.beep();
     };
-    const lockedBefore = ITEMS.filter((x) => status(x.id) === 'locked').map((x) => x.id);
     const stampsBefore = badgesFor(state.wallet, state.caught).filter((b) => b.earned).map((b) => b.name);
     try {
       const res = await (state.mode === 'live' ? catchLive : catchDemo)(id, s.key, step);
@@ -417,14 +404,13 @@
       if (state.mode === 'demo') store.set('demoOrders', { ...store.get('demoOrders', {}), [id]: state.caught[id] });
       screen.querySelectorAll('[data-step]').forEach((li) => (li.className = 'done'));
       $('#stepMsg').textContent = '';
-      const unlocked = lockedBefore.filter((x) => status(x) === 'open').map(byId);
       const stamps = badgesFor(state.wallet, state.caught).filter((b) => b.earned && !stampsBefore.includes(b.name));
       orderDone = true;
       light('on');
       screen.insertAdjacentHTML('beforeend', `<div class="scr-actions">
         ${state.mode === 'live' ? `<a class="btn btn-primary" href="${pumpUrl(res.mint)}" target="_blank" rel="noopener">Open on pump.fun</a><a class="btn btn-ghost" href="${txUrl(res.signature)}" target="_blank" rel="noopener">Solscan</a>` : ''}
         <button class="btn ${state.mode === 'live' ? 'btn-ghost' : 'btn-primary'}" type="button" data-close>Order something else</button></div>`);
-      printReceipt(p, s, res, unlocked, stamps);
+      printReceipt(p, s, res, stamps);
       render();
     } catch (e) {
       light('err');
@@ -439,7 +425,7 @@
     }
   }
 
-  function printReceipt(p, s, res, unlocked, stamps) {
+  function printReceipt(p, s, res, stamps) {
     const r = $('#receipt');
     const d = new Date();
     r.innerHTML = `<h4>McPAD DRIVE-THRU</h4>
@@ -453,7 +439,6 @@
       <div class="row"><span>MINT</span><span>${short(res.mint)}</span></div>
       <div class="row"><span>TX</span><span>${short(res.signature)}</span></div>
       ${stamps.length ? `<hr>${stamps.map((b) => `<p class="c">★ STAMP EARNED: ${esc(b.name.toUpperCase())} ★</p>`).join('')}` : ''}
-      ${unlocked.length ? `<hr><p class="unlock">NOW ON THE MENU: ${unlocked.map((x) => esc(x.name.toUpperCase())).join(', ')}</p>` : ''}
       <hr><p class="c">${state.mode === 'live' ? 'THANK YOU. PLEASE PULL FORWARD.' : 'DEMO RECEIPT · NOTHING WAS SENT'}</p>
       ${state.mode === 'live' ? `<div class="links"><a href="${pumpUrl(res.mint)}" target="_blank" rel="noopener">pump.fun</a><a href="${txUrl(res.signature)}" target="_blank" rel="noopener">solscan</a></div>` : ''}`;
     r.hidden = false;
